@@ -1,0 +1,31 @@
+body {
+    width: 500px;
+    margin-right: auto;
+    margin-left: auto;
+    background-color: #F5F5F5;
+}
+h1{
+	color:#383838
+    
+}
+.quiz1{
+    width: 500px;
+    height: 500px;
+    font-size: 100px;
+    position: relative;
+	background-color: #79D1B1;
+	border-radius: 4px;
+	color: #fff;
+	line-height: 52px;
+	-webkit-transition: none;
+	transition: none;
+	text-shadow: 0 1px 1px rgba(0, 0, 0, .3);
+}
+.quiz1:hover {
+    background-color: #31c8aa;
+    box-shadow: 0 3px 0 #23a188;
+}
+.quiz1:active {
+    top: 3px;
+    box-shadow: none;
+}

@@ -1,0 +1,21 @@
+body {
+    width: 500px;
+    margin-right: auto;
+    margin-left: auto;
+    background-color: #F5F5F5;
+}
+h1{
+    color: #383838;
+}
+#title{
+    color: #F5F5F5;
+    background-color:#93B8CA;
+}
+#selectA{
+    color: #F5F5F5;
+    background-color: #93B8CA;
+}
+#answerA{
+    color: #F5F5F5;
+    background-color: #93B8CA;
+}

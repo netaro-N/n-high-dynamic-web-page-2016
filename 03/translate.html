@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ネコ翻訳機</title>
+    <link rel="stylesheet" href="translate.css">
+</head>
+<body>
+    <h1>ネコ語で話してみよう！</h1>
+    <p>ネコ語にする言葉を入れて下さい</p>
+    <p>例：おはよう</p>
+    <input type="text" id="language" size="25" maxlength="15">
+    <button id="translate">翻訳する</button>
+    <div id="result-area"></div>
+    <div id="tweet-area">
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+    </div>
+    <script src="translate.js"></script>
+</body>
+</html>

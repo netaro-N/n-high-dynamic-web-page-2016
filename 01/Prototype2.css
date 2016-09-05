@@ -1,0 +1,33 @@
+
+.ken{
+    margin-top: 50px;
+    font-size: 80px;
+}
+.ken2{
+margin-top: 60px;
+font-size: 100px;
+}
+.ok{
+    margin-top: 40px;
+    margin-left: 500px;
+    font-size: 30px;
+}
+.ok2{
+    margin-top: 40px;
+    margin-left: 500px;
+    font-size: 30px;
+}
+.ok3{
+    margin-top: 40px;
+    margin-left: 40px;
+    font-size: 30px;
+}
+.ok4{
+    margin-top: 40px;
+    margin-left: 500px;
+    font-size: 30px;
+}
+
+body{
+    background-color: lightgreen;
+}

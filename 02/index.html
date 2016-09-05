@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <title lang="ja">Raymarching</title>
+    <script type="glsl" id="vs">
+      attribute vec3 position;
+void main() {
+    gl_Position = vec4(position, 1.0);
+}
+
+    </script>
+    <script type="glsl" id="fs">
+      precision mediump float;
+vec2 rand(vec2 pos)
+{
+  return fract(pow(pos+2.0, pos.yx+2.0) * 22222.0);
+}
+vec2 rand2(vec2 pos) {
+    return rand(rand(pos));
+}
+float randSimple(vec2 co) {
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+float softNoise(vec2 pos, float scale) {
+    vec2 smplpos = pos*scale;
+    float c0 = rand2((floor(smplpos) + vec2(0.0, 0.0)) / scale).x;
+    float c1 = rand2((floor(smplpos) + vec2(1.0, 0.0)) / scale).x;
+    float c2 = rand2((floor(smplpos) + vec2(0.0, 1.0)) / scale).x;
+    float c3 = rand2((floor(smplpos) + vec2(1.0, 1.0)) / scale).x;
+    vec2 a = fract(smplpos);
+    return mix(
+        mix(c0, c1, smoothstep(0.0, 1.0, a.x)),
+        mix(c2, c3, smoothstep(0.0, 1.0, a.x)),
+        smoothstep(0.0, 1.0, a.y)
+        );
+}
+float sdSphere(vec3 p, float r) {
+    return length(p) - r;
+}
+float sdPlane(vec3 p, vec4 n) {
+    return dot(p, n.xyz) + n.w;
+}
+float sdCylinder(vec3 p, vec2 h) {
+  vec2 d = abs(vec2(length(p.xz),p.y)) - h;
+  return min(max(d.x,d.y),0.0) + length(max(d,0.0));
+}
+float sdBox(vec3 p, vec3 b) {
+  return length(max(abs(p)-b,0.0));
+}
+float sdCross(vec3 p, float size) {
+    p = abs(p);
+    vec3 d = vec3(
+        max(p.x, p.y),
+        max(p.y, p.z),
+        max(p.z, p.x));
+    return min(d.x, min(d.y, d.z)) - size;
+}
+float opU(float a, float b) {
+    return min(a, b);
+}
+float opS(float a, float b) {
+    return max(-a, b);
+}
+float opI(float a, float b) {
+    return max(a, b);
+}
+vec3 opRep(vec3 p, float interval) {
+    return mod(p, interval) - interval * 0.5;
+}
+vec2 opRot2(vec2 p, float a) {
+    float c = cos(a);
+    float s = sin(a);
+    return p * mat2(c, s, -s, c);
+}
+vec3 opTwist(vec3 p, float scale) {
+    float c = cos(scale * p.y);
+    float s = sin(scale * p.y);
+    mat2 m = mat2(c, -s, s, c);
+    return vec3(m*p.xz, p.y);
+}
+vec3 hue(float hue) {
+    vec3 rgb = fract(hue + vec3(0.0, 2.0/3.0, 1.0/3.0));
+    rgb = abs(rgb*2.0-1.0);
+    return clamp(rgb*3.0-1.0, 0.0, 1.0);
+}
+vec3 hsv2rgb(vec3 hsv) {
+    return ((hue(hsv.x)-1.0)*hsv.y+1.0) * hsv.z;
+}
+const float normalD = 0.0001;
+float getDiffuse(vec3 light, vec3 norm) {
+    return clamp(dot(light, norm), 0.1, 1.0);
+}
+float getScanline(float axis, float interval, float size, float a, float b) {
+    return mod(axis, interval) < size ? a : b;
+}
+uniform vec2 resolution;
+uniform float time;
+const int MAX_RAY_STEPS = 32;
+const float DETECTION_TRESHOLD = 0.001;
+float sdCrossRep(vec3 p) {
+    vec3 q = mod(p + 1.0, 1.5) - 1.0;
+    float beat = sin(time / 1000.0) * 0.2 + 1.2;
+    return sdCross(q, 1.0 / 3.0 * beat);
+}
+float sdSphereRep(vec3 p) {
+    float beat = sin(time / 1000.0) * 0.4 + 1.2;
+    vec3 q = mod(p + 1.0, 2.0) - 1.0;
+    return sdBox(q * beat, vec3(0.5)) / beat;
+}
+float sdCrossRepScale(vec3 p, float s) {
+    return sdCrossRep(p * s) / (s);
+}
+float scene(vec3 p) {
+    float scale = 1.0;
+    float dist = 0.0;
+    for (int i = 0; i < 5; i++) {
+        dist = opS(sdCrossRepScale(p, scale), dist);
+        scale *= 3.0;
+    }
+    return dist;
+}
+vec4 colorize(float c) {
+    float h = mix(0.4, 0.6, c);
+    float s = 1.0 - pow(c, 4.0);
+    float v = c;
+    return vec4(hsv2rgb(vec3(h, s, v)), 1.0);
+}
+void main() {
+    vec2 pos = (gl_FragCoord.xy*2.0 -resolution) / resolution.y;
+    vec3 camPos = vec3(0.0, 0.0, 0.0 - time / 10000.0);
+    vec3 camDir = normalize(vec3(0.0, 0.0, -1.0));
+    vec3 camUp = vec3(0.0, 1.0, 0.0);
+    vec3 camSide = cross(camDir, camUp);
+    float focus = 1.8;
+    vec3 rayDir = normalize(camSide*pos.x + camUp*pos.y + camDir*focus);
+    float t = 0.0;
+    float d = 0.0;
+    vec3 posOnRay = camPos;
+    int rayStep;
+    for (int i = 0; i < MAX_RAY_STEPS; ++i) {
+        d = scene(posOnRay);
+        t += d;
+        posOnRay = camPos + t*rayDir;
+        rayStep = i;
+        if (d < DETECTION_TRESHOLD) {
+            break;
+        }
+    }
+    vec3 light = normalize(vec3(1.0, -1.0, -1.0));
+    float scanline = getScanline(gl_FragCoord.y, 4.0, 2.0, 0.7, 1.0);
+    vec4 color = colorize(float(rayStep) / float(MAX_RAY_STEPS));
+    gl_FragColor = vec4(color.xyz * scanline * 0.9, 1.0);
+}
+
+    </script>
+    <script type="text/javascript" src="main.js"></script>
+  </head>
+  <body style="margin: 0px; overflow: hidden;">
+    <canvas id="canvas"></canvas>
+  </body>
+</html>

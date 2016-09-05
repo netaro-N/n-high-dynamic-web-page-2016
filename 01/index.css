@@ -1,0 +1,26 @@
+.face {
+    color:black;
+    font-size:500%;
+    font-family:'HG正楷書体-PRO'
+}
+.face2{
+    margin-top: 70px;
+    color:black;
+    font-size:200%;
+}
+button{
+    font-size:150%;
+    margin-top:200px; 
+    margin-left: 450px;
+    padding: 50px 200px;
+    background-color:white;
+    border-color: #2E6DA4;
+    border-style: none
+    
+}
+      
+body {
+
+    background-color:lightblue;
+    
+}
